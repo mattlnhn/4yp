@@ -24,22 +24,25 @@ function Tii = direct(Tb, Ti, h, dt, geom, mat, A)
     %% temperature dependent properties
     % mean temperatures
     Tm = [sum(Ti(1:n1))/n1 sum(Ti(n1+1:n1+n2))/n2 sum(Ti(n1+n2+1:n))/n3]; 
+    Tm = [1 Tm(1) Tm(1)^2;
+        1 Tm(2) Tm(2)^2;
+        1 Tm(3) Tm(3)^2];
 
-    k1 = mat(1, 1, 1) + mat(1, 1, 2)*Tm(1) + mat(1, 1, 3)*Tm(1)^2;
-    rho1 = mat(1, 2, 1) + mat(1, 2, 2)*Tm(1) + mat(1, 2, 3)*Tm(1)^2;
-    cp1 = mat(1, 3, 1) + mat(1, 3, 2)*Tm(1) + mat(1, 3, 3)*Tm(1)^2;
+    k1 = Tm(1, :)*reshape(mat(1, 1, :), [], 1, 1);
+    rho1 = Tm(1, :)*reshape(mat(1, 2, :), [], 1, 1);
+    cp1 = Tm(1, :)*reshape(mat(1, 3, :), [], 1, 1);
     alpha1 = k1/(rho1*cp1);
     tau1 = alpha1*dt/dx^2;
 
-    k2 = mat(2, 1, 1) + mat(2, 1, 2)*Tm(2) + mat(2, 1, 3)*Tm(2)^2;
-    rho2 = mat(2, 2, 1) + mat(2, 2, 2)*Tm(2) + mat(2, 2, 3)*Tm(2)^2;
-    cp2 = mat(2, 3, 1) + mat(2, 3, 2)*Tm(2) + mat(2, 3, 3)*Tm(3)^2;
+    k2 = Tm(2, :)*reshape(mat(2, 1, :), [], 1, 1);
+    rho2 = Tm(2, :)*reshape(mat(2, 2, :), [], 1, 1);
+    cp2 = Tm(2, :)*reshape(mat(2, 3, :), [], 1, 1);
     alpha2 = k2/(rho2*cp2);
     tau2 = alpha2*dt/dx^2;
 
-    k3 = mat(3, 1, 1) + mat(3, 1, 2)*Tm(3) + mat(3, 1, 3)*Tm(3)^2;
-    rho3 = mat(3, 2, 1) + mat(3, 2, 2)*Tm(3) + mat(3, 2, 3)*Tm(3)^2;
-    cp3 = mat(3, 3, 1) + mat(3, 3, 2)*Tm(3) + mat(3, 3, 3)*Tm(3)^2;
+    k3 = Tm(3, :)*reshape(mat(3, 1, :), [], 1, 1);
+    rho3 = Tm(3, :)*reshape(mat(3, 2, :), [], 1, 1);
+    cp3 = Tm(3, :)*reshape(mat(3, 3, :), [], 1, 1);
     alpha3 = k3/(rho3*cp3);
     tau3 = alpha3*dt/dx^2;
 
@@ -63,7 +66,7 @@ function Tii = direct(Tb, Ti, h, dt, geom, mat, A)
     xi2a = 2*phi2a/(1-(1+phi1a)*(1+phi2a));
     A(n1, n1) = xi2a-1;
     A(n1, n1+1) = -xi2a;
-    A(n1+1, n1) = xi1a;
+    A(n1+1, n1) = -xi1a;
     A(n1+1, n1+1) = xi1a-1;
 
     phi1b = 2*k2/(h*dx);
