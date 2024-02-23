@@ -2,8 +2,8 @@ function h_out = inverse(filename, geom, mat, dt, params, conv)
 %INVERSE
 % geom      {1} lengths of each section [l1, l2, l3]
 %           {2} dx
-%           {3} nodes in each section = geometry{1}./geometry{2}
-%           {4} total nodes = sum(geometry{3})
+%           {3} nodes in each section = geom{1}./geom{2}
+%           {4} total nodes = sum(geom{3})
 %           {5} thermocouple nodes #IMPORTANT: THINK ABOUT COORDINATES
 % mat       3x3x3 matrix
 %           dim 1: material 1, 2, 3
@@ -22,6 +22,7 @@ function h_out = inverse(filename, geom, mat, dt, params, conv)
     pmax = conv(3);
 
     %% build basic A matrix
+    % relatively costly, only needs doing once
     A = diag(ones(n-1, 1), -1) + diag(-2*ones(n, 1), 0) + ...
         diag(ones(n-1, 1), 1);
     A(1, 1) = -3;
