@@ -31,7 +31,7 @@ geom{3} = geom{1}./geom{2};
 % total nodes = sum(geom{3})
 geom{4} = sum(geom{3});
 % thermocouple nodes #IMPORTANT: THINK ABOUT COORDINATE SYSTEM
-geom{5} = [xcoord2node([10 20 30 32 45 47 57 67]*1e-3, geom{2})];
+geom{5} = ceil([xcoord2node([10 20 30 32 45 47 57 67]*1e-3, geom{2})]);
 
 %% friendly names
 dx = geom{2};
@@ -39,6 +39,7 @@ n1 = geom{3}(1);
 n2 = geom{3}(2);
 n3 = geom{3}(3);
 n = geom{4};
+sensors = geom{5};
 
 %% parameters for transient solver
 Tmin = 25;
@@ -82,31 +83,36 @@ A(n, n) = -3;
 % % clock
 % elapsed = 0;
 % 
-% while any E above tolerance continue iterating
+% % while any E above tolerance continue iterating
 % while any(E>tolE)
 %     elapsed = elapsed + dt;
 %     fprintf("%.6f s\n", elapsed)
-%     Tii = direct(Tb, Ti, 1e12, dt, geom, mat, A);
+%     Tii = direct(Tb, Ti, 1e3, dt, geom, mat, A);
 %     E = (Tii-Ti)./Ti;
 %     Ti = Tii;
 % end
 % save("Ti.mat", "Ti")
 
 load("Ti.mat")
+Tb = [150 Tmin];
 
 %% function for h
-T = 120; % seconds, period for simulation
+T = 180; % seconds, period for simulation
 s = ceil(T/dt);
-h = interp1([0 T/2 T], [10000 1000 10000], linspace(0, T, s), "nearest");
+h = interp1(linspace(0, T, 10), [1000:1000:5000 4000:-1000:1000 1000], linspace(0, T, s), "previous");
 
 %% generate and save noisy temperature data
 % iterations
 p = 0;
 pmax = s;
 
+% offset
+offset = normrnd(0, 0.3, [length(sensors) 1]);
+offset = [0; offset; 0];
+
 % save properties
 f_save = 20; % Hz, save frequency
-T_save = zeros(n, T*f_save);
+T_save = offset.*ones(length(sensors)+2, T*f_save);
 
 % clock
 elapsed = 0; % time
@@ -130,7 +136,8 @@ while p < pmax
         elapsed = 0;
         % add noise drawn from zero mean gaussian where 3*sigma = 1.5 degC,
         % save
-        T_save(:, c) = Tii + normrnd(0, 0.5, [n 1]);
+        T_save(:, c) = T_save(:, c) + [Tb(1); Tii(sensors); Tb(2);] + normrnd(0, 0.01, [length(sensors)+2 1]);
+        fprintf("saved column\n")
     end
 end
 
@@ -141,4 +148,3 @@ save("T-"+string(datetime("now","Format","yyyyMMdd-HHmmss"))+".mat",...
 function n = xcoord2node(x, dx)
     n = ((x./dx) + 1)./2;
 end
-
