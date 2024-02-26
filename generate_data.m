@@ -75,26 +75,26 @@ A(1, 1) = -3;
 A(n, n) = -3;
 
 %% establish initial temperature distribution
-% Ti = Tmin*ones(n, 1);
-% Tb = [150 Tmin];
-% E = 1e99*ones(n, 1);
-% tolE = 1e-6;
-% 
-% % clock
-% elapsed = 0;
-% 
-% % while any E above tolerance continue iterating
-% while any(E>tolE)
-%     elapsed = elapsed + dt;
-%     fprintf("%.6f s\n", elapsed)
-%     Tii = direct(Tb, Ti, 1e3, dt, geom, mat, A);
-%     E = (Tii-Ti)./Ti;
-%     Ti = Tii;
-% end
-% save("Ti.mat", "Ti")
-
-load("Ti.mat")
+Ti = Tmin*ones(n, 1);
 Tb = [150 Tmin];
+E = 1e99*ones(n, 1);
+tolE = 1e-9;
+
+% clock
+elapsed = 0;
+
+% while any E above tolerance continue iterating
+while any(E>tolE)
+    elapsed = elapsed + dt;
+    fprintf("%.6f s\n", elapsed)
+    Tii = direct(Tb, Ti, 1e3, dt, geom, mat, A);
+    E = (Tii-Ti)./Ti;
+    Ti = Tii;
+end
+save("Ti.mat", "Ti")
+
+% load("Ti.mat")
+% Tb = [150 Tmin];
 
 %% function for h
 T = 180; % seconds, period for simulation
